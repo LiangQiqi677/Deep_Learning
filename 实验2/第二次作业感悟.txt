@@ -1,0 +1,78 @@
+1、实现回归问题
+由于是需要实现线性函数，所以不需要加入激活函数（解决非线性问题），实验中也没有加入隐藏层。如果需要加入隐藏层，则可以写成
+def net(X):       
+    linear_1 = linear(X, W1, b1)
+    #R = relu(linear_1) 不需要relu激活
+    linear_2 = linear(R, W2, b2)
+    return linear_2
+由y = w2( w1x + b1) + b2，由线性函数可知，求得的w=w2w1，b=w2b1+b2
+
+2、二分类问题
+激活函数使用Sigmoid，损失函数使用二分类交叉熵损失函数
+#Sigmoid函数用作二分类问题的意义：输出结果只有一个，如果值在0.5-1之间，表示分为正类；如果值在0-0.5之间，表示分为负例
+#Softmax函数用作n分类问题的意义：输出结果有n个，这n个标签的概率加起来为1，哪个标签概率高就分为哪一类
+#当n=2时，Sigmoid函数与Softmax函数相同
+
+单隐藏层的二分类任务模型
+def net(X):
+    X = X.view((-1, num_inputs))          
+    linear_1 = linear(X, W1, b1)
+    R = relu(linear_1)
+    linear_2 = linear(R, W2, b2)
+    S = sigmoid(linear_2) 
+    return S
+
+#定义二分类交叉熵损失函数（对应Sigmoid层）
+def CrossEntropy_loss(y_hat,y):
+    return -torch.mean(y.view(-1,1)*torch.log(y_hat) + (1-y.view(-1,1))*torch.log(1-y_hat))
+
+利用Torch.nn实现以上模型和损失函数
+
+class Binary_Classification(torch.nn.Module):
+    def __init__(self):
+        super(Binary_Classification, self).__init__()
+        self.hidden = torch.nn.Linear(num_inputs, num_hiddens) #定义隐藏层函数
+        self.relu = torch.nn.ReLU()                       #定义隐藏层激活函数
+        self.output = torch.nn.Linear(num_hiddens, num_outputs)#定义输出层函数
+        self.sigmoid = torch.nn.Sigmoid()                      #定义输出层激活函数，此处定义Sigmoid了，损失函数可以只用BCELoss
+
+    def forward(self, x):
+        x = self.hidden(x)
+        x = self.relu(x)
+        x = self.output(x)
+        x = self.sigmoid(x)
+        return x
+        
+net = Binary_Classification()
+
+#初始化模型参数
+init.normal_(net.hidden.weight, mean=0, std=0.01)
+init.normal_(net.output.weight, mean=0, std=0.01)
+init.constant_(net.hidden.bias, val=0)
+init.constant_(net.output.bias, val=0)
+
+loss = torch.nn.BCELoss()  # BCEWithLogitsLoss = BCELoss + Sigmoid
+#如果使用BCEWithLogitsLoss（用于二分类问题）作为损失函数，那就不需要Sigmoid层了，因为
+BCEWithLogitsLoss = BCELoss + Sigmoid
+
+
+3、多分类问题
+激活函数使用Softmax，损失函数使用多分类交叉熵损失函数
+
+def net(X):
+    X = X.view((-1, num_inputs))          
+    linear_1 = linear(X, W1, b1)
+    R = relu(linear_1)
+    linear_2 = linear(R, W2, b2)
+    #S = Softmax(linear_2) #由于CrossEntropyLoss损失函数中自带Softmax，不用加Softmax层
+    return linear_2
+
+loss = torch.nn.CrossEntropyLoss()
+#如果使用CrossEntropyLoss（用于多分类问题）作为损失函数，那就不需要Softmax层了，因为
+CrossEntropyLoss= NLLLoss+ Softmax
+
+4、隐藏层层数问题
+没有隐藏层：只能够表示线性可分的函数
+隐藏层数=1：可以拟合任何“包含从一个有限空间到另一个有限空间的连续映射”的函数
+隐藏层数=2：可以表示任意精度的任意决策边界，并且可以拟合任意精度的任何平滑映射
+隐藏层数>2：可以学习复杂描述

@@ -1,0 +1,22 @@
+pabdas操作：
+
+1、
+df=pd.read_csv(filename,nrows=20,names=["userId",'venueId'])
+参数：nrows表示取前几行；names表示自定义每一列的列名，如果没有names参数就是自动把第一行作为每列的列名
+
+2、
+df.loc[ 行信息 , 列信息] #基于label的索引
+df.loc[ :  ,  ['userId','venueCategory']  ] 表示取出所有的行的userId列和venueCategory列
+
+3、
+df.iloc[i,1] 基于位置的索引，具体定位
+
+4、test_ind = test_rep.set_index('venueCategory')
+将venueCategory列作为index
+
+5、test_ind.groupby('userId').groups
+按照userId进行分组，然后将每组内的index组合成list，然后将[userId,list]组合成字典，也就是将每个分组后的index定位出来
+
+6、
+对于图片分类来说，假设图片大小是28*28的，而分类结果是分3类，那么inputsize=784，outputsize=3
+对于文字分类来说，文字的输入维度和分类维度是相同的，文字的输入类似于one-hot编码，输出就是这个one-hot编码的维度，记录着是每个字的概率
